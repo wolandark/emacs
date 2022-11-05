@@ -1,0 +1,8 @@
+(blink-cursor-mode 0)
+
+(package-initialize)
+
+(require 'package)
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+(package-initialize)
+

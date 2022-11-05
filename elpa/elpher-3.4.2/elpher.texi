@@ -1,0 +1,976 @@
+\input texinfo @c -*-texinfo-*-
+
+@setfilename elpher.info
+@settitle Elpher Manual v3.4.0
+
+@dircategory Emacs
+@direntry
+* Elpher: (elpher). A gopher and gemini client for Emacs.
+@end direntry
+
+@copying
+This manual documents Elpher, a gopher and gemini client for Emacs.
+
+Copyright @copyright{} 2019-2022  Tim Vaughan@*
+Copyright @copyright{} 2021 Daniel Semyonov@*
+Copyright @copyright{} 2021 Alex Schroeder
+
+@quotation
+The source and documentation of Elpher is free software.  You can
+redistribute it and/or modify it under the terms of the GNU General
+Public License as published by the Free Software Foundation; either
+version 3, or (at your option) any later version.
+
+Elpher is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License in
+the file COPYING in the same directory as this file for more details.
+@end quotation
+@end copying
+
+@titlepage
+@title Elpher Gopher and Gemini Client Manual
+@author Tim Vaughan
+
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@ifnottex
+@node Top, Introduction, (dir), (dir)
+@top Elpher
+
+@insertcopying
+
+@menu
+* Introduction::                Elpher Overview: what's this all about?
+* Installation::                Installing Elpher
+* Quick Start::                 Get up and running quickly
+* Navigation::                  Fundamentals of Elpher navigation
+* Bookmarks::                   How to record and visit bookmarks
+* Gopher character encodings::  How Elpher selects encodings for gopher pages
+* Encrypted gopher connections::  How and when TLS is enabled for gopher
+* Gemini support::              Support for the Gemini protocol
+* Finger support::              Support for the Finger protocol
+* Local files::                 Opening local files in elpher
+* About pages::                 Special pages and how to reference them
+* ANSI support::                Notes in Elpher's ANSI support
+* Customization::               How to customize various aspects of Elpher
+* Command Index::
+* News::                        Changes introduced by major releases
+* Contributors::                Contributors to Elpher
+
+@detailmenu
+ --- The Detailed Node Listing ---
+
+Navigation
+
+* Within-page navigation::      Moving about within a page
+* Between-page navigation::     Commands for moving between pages
+* History and Caching::         Explanation of how Elpher represents history
+
+@end detailmenu
+@end menu
+
+@end ifnottex
+
+@macro keycmd{key,cmd}
+@item \key\  (@code{\cmd\})
+@findex \cmd\
+@end macro
+
+@node Introduction, Installation, Top, Top
+@chapter Introduction
+
+Elpher aims to be a capable and practical gopher and gemini client for
+Emacs.  Its focus is on easy keyboard-driven navigation based on
+sensible default bindings (with out-of-the-box support for Evil).  It is
+intended to be robust and behave in non-surprising ways at all times.
+Additionally, Elpher provides the following bells and whistles:
+
+@itemize
+@item
+followable web and gopher links in plain text,
+
+@item
+an easily navigable history, sporting caching of visited pages (both
+content and cursor position),
+
+@item
+auto-completing menu item navigation,
+
+@item
+direct visualization of image files where supported (no writing to
+disk),
+
+@item
+basic support for the new ``heavier than gopher, lighter than the web'' Gemini protocol,
+
+@item
+support for the Finger protocol.
+
+@end itemize
+
+Elpher is still under active development.  Although we try very hard to
+ensure that releases are bug-free, this cannot be guaranteed.  However,
+this also means that any usability features that you feel are missing
+can likely by incorporated quickly, so please get in touch if you
+have some ideas.
+
+@node Installation, Quick Start, Introduction, Top
+@chapter Installation
+
+@section Installing from ELPA or MELPA
+
+Elpher is available on the non-GNU ELPA package archive.  If you are
+using Emacs 28 or later, this archive should be available on your system
+by default.  For Emacs 27, you'll need to follow the instructions at
+@url{https://elpa.nongnu.org} to make the archive accessible.
+
+Alternatively, Elpher is available from the MELPA package archive.  If you have
+never installed packages from this repository before, you'll need
+to follow the instructions at @url{https://melpa.org/#/getting-started}.
+
+Once one of these package archives is installed, enter the following to
+install Elpher:
+
+@example
+@kbd{M-x package-install @key{RET} elpher @key{RET}}
+@end example
+
+@noindent To uninstall, use
+
+@example
+@kbd{M-x package-delete @key{RET} elpher @key{RET}}.
+@end example
+
+@section Installing by hand
+
+It is also possible to install Elpher directly by downloading the file
+@file{elpher.el} from @url{gopher://thelambdalab.xyz/1/projects/elpher}
+(you'll need to download the ``source archive'' and extract it), adding
+it to a directory in your @code{load-path}, and then adding
+
+@example
+(require 'elpher)
+@end example
+
+@noindent to your Emacs initialization file.
+
+@node Quick Start, Navigation, Installation, Top
+@chapter Quick Start
+
+Before diving into the minutiae of the different commands available,
+we will quickly describe how to get up and running with Elpher.
+
+Once installed, you can launch Elpher using
+
+@example
+@kbd{M-x elpher @key{RET}}
+@end example
+
+@noindent This will switch to the *Elpher* buffer and display a start
+page, with information on each of the default keyboard bindings.
+
+From here you can move point between links (which may be menu items or
+inline URLs in text files) by using @key{TAB} and @kbd{S-@key{TAB}},
+as in Info.  You can also jump directly to a menu item using @key{m}, or
+use the standard Emacs or Evil motion and search commands to find your
+way around.  To open a link, press @key{RET}.  (Where a mouse is
+available, Clicking on a link with the mouse cursor has the same
+effect.)
+
+To return to the page you just followed the link from, press @key{u}.
+
+Elpher caches (for the duration of an Emacs session) both page contents
+and the position of point on each of the pages (gopher menus, gemini
+pages, query results, or text pages) you visit, restoring these when you
+next visit the same page.  Thus, pressing @key{u} displays the previous
+page in exactly the same state as when you left, meaning that you can
+quickly and visually explore the different documents in a menu without
+having to wait for anything to reload.
+
+Of course, sometimes you'll @emph{want} to reload the current page
+rather than stick with the cached version.  To do this use @key{R}.
+(This is particularly useful for search query results, where this
+allows you to perform a different search.)
+
+That's more-or-less it. Elpher supports a number of other features,
+such a support for different coding schemes and TLS encryption, and a
+variety of customization options, all of which are explained in the
+rest of this document. However the emphasis is on keeping the basic
+navigation experience as intuitive and responsive as possible.
+
+Note that you can launch multiple Elpher sessions in parallel by using
+a prefix:
+
+@example
+@kbd{C-u M-x elpher @key{RET}}
+@end example
+
+@node Navigation, Bookmarks, Quick Start, Top
+@chapter Navigation
+Throughout this manual, we use the word ``page'' to refer to any
+visualization of a response from a gopher or gemini server, be it a
+menu/directory, query result, text file or image.
+
+Elpher's navigation interface is inspired by the Emacs Info mode.
+Movement within a page is essentially the same as moving
+around any other text file in Emacs, but with special keys
+for quickly jumping between menu items and URLs in text files.
+Movement between pages is facilitated by a simple linear history
+coupled with caching of pages and cursor position.
+
+@menu
+* Within-page navigation::      Moving about within a page
+* Between-page navigation::     Commands for moving between pages
+* History and Caching::         Explanation of how Elpher represents history
+@end menu
+
+
+@node Within-page navigation, Between-page navigation, Navigation, Navigation
+@section Within-page navigation
+
+To move about within a page, you should be able use the same keys you usually
+use to browse files in Emacs.  This is even true when Evil mode is
+enabled. Paragraph hopping, searching etc should work as usual.
+
+In addition, the following commands are provided for quickly moving between
+links and menu items.
+
+@table @asis
+@keycmd{@key{TAB}, elpher-next-link}
+Move to the next link or menu item in the file.
+
+@item @kbd{Shift-@key{TAB}} or @key{BACKTAB} (@code{elpher-prev-link})
+@findex elpher-prev-link
+Move to the previous link or menu item in the file.
+
+@keycmd{@key{m}, elpher-jump}
+Jump directly to a link within a file by specifying its display string
+or link text.  (Unlike the previous two commands, this immediately opens
+the selected link.
+@end table
+
+
+The following commands can be used to retrieve information about the
+current page, or the address of the link at point:
+
+@table @asis
+@keycmd{@key{i}, elpher-info-link}
+Display host, port and selector information for the link at point.
+
+@keycmd{@key{I}, elpher-info-current}
+Display host, port and selector information for the current page.
+
+@keycmd{@key{c}, elpher-copy-link-url}
+Add URL representing address of link at point to the kill-ring and the
+system clipboard (if available).
+
+@keycmd{@key{C}, elpher-copy-current-url}
+Add URL representing address of the current page to the kill-ring and
+the system clipboard (if available).
+
+@keycmd{@key{d}, elpher-download}
+Download link at point and save the result as a file.  The minibuffer
+will prompt for the name of the file to write, with the default name being
+the display string (if available) associated with the link.
+
+@keycmd{@key{D}, elpher-download-current}
+This is similar to @code{elpher-download}, but instead applies to the
+current page rather than a link.
+
+@keycmd{@key{.}, elpher-view-raw}
+This displays the raw server response for the current page.  While not
+useful for general browsing, it is useful for debugging incorrect rendering
+or out-of-spec server responses.
+@end table
+
+@node Between-page navigation, History and Caching, Within-page navigation, Navigation
+@section Between-page navigation
+
+Moving to a different page can be accomplished in several ways,
+described by the following command:
+
+@table @asis
+@keycmd{@key{RET}\, @key{mouse-1}, elpher-follow-link}
+Follow the menu item or link at point (or selected with the mouse).
+
+Exactly what is meant by ``follow'' depends on the kind of item selected:
+
+@itemize
+@item
+For text or menu type items or links, the current page text is replaced
+by the text of this item.  Unless the customization variable
+@code{elpher-use-header} (@pxref{Customization}) is 
+@code{nil}, the display string of the link is displayed in the buffer header.
+Links to images behave similarly on Emacs systems supporting the display of
+bitmap graphics, however their content is not cached in memory by default.
+
+@item
+When followed, links to search/query items (type 7) prompt for input in
+the minibuffer then display the results in the same way as for text and menu
+items.
+
+@item
+Following links to binary files (and image files on unsupported systems)
+causes Elpher to prompt for a filename in which to save the content.
+
+@item
+Following links of type `h' with a selector having the `URL:' prefix, or
+unsupported URLs in text files, will result in Elpher using an external
+programme to open the URL.  This will be either the default system browser
+or, if the @code{elpher-open-urls-with-eww} customization variable is non-nil,
+Emacs' own EWW browser. (See @pxref{Customization}.) 
+
+@end itemize
+
+Once a text, menu or query response page has been displayed, its contents are
+cached for the duration of the Emacs session. 
+
+@keycmd{@key{g}, elpher-go}
+Open a particular page by specifying either its full URL or just
+entering a gopher host name. (The protocol defaults to gopher, so gemini
+links must include the @code{gemini://} prefix.
+
+If a unsupported protocol is used in the URL the result will be the same
+as following a URL link of the same type from a link in a page.
+
+@keycmd{@key{o}, elpher-go-current}
+Prompts for a URL similar to @code{elpher-go}, but initialized to the URL
+of the current page.  This allows you to easily try other selectors for the
+same server.
+
+Remember however, that the Gopher RFC 1436 provides @emph{no} guarantees about the
+structure of selectors.
+
+@keycmd{@key{O}, elpher-root-dir}
+Open the root page (empty selector) on the current host.
+
+@keycmd{@key{u}\, @key{-}\, @key{^}\, @key{mouse-3}, elpher-back}
+Return to the previous page, where ``previous'' means the page where the
+page which was displayed immediately before the current page.
+@end table
+
+
+@node History and Caching,  , Between-page navigation, Navigation
+@section History and Caching 
+
+The history and caching strategy in Elpher is extremely simple, but
+may be confusing without a good mental model of how it works.  That
+is what this section attempts to provide.
+
+Essentially, @strong{every} time you navigate to a new page, either
+by clicking or pressing @key{RET} on a link, using @key{g} to jump
+to a new page by its address, or using @key{O} to open the root selector,
+the following two things occur:
+
+@enumerate
+@item
+the cursor position and content for the original page are recorded in an
+in-memory cache, and
+
+@item
+the original page is set as the ``parent'' of the new page.
+@end enumerate
+
+The only way to return to pages in this history is by using @key{u},
+which returns to the previous of the current page.  @footnote{The
+addition of the new page to the history happens even if the new page is
+one that has been seen before. This is mostly the desired behaviour.
+However, opening an explicit ``back'' link provided by a gopher menu or
+gemini page will also add a new entry to the history.  Unless you
+haven't yet visited that menu, it's therefore better to use @key{u} to
+go back in this case.}
+
+One aspect that may seem peculiar is that Elpher lacks a corresponding ``next'' or
+``forward'' command.  However, since Elpher caches the position of point,
+this will be automatically positioned on the link that was most recently followed
+from a given page.  This means that, at least for links followed from menus
+and text files, the inverse of @key{u} is actually just @key{RET}.
+
+Elpher actually maintains two histories, and there are two different
+commands to access them:
+
+@table @asis
+@keycmd{@key{s}, elpher-show-history}
+This shows the history of the current buffer. This shows all the links
+you would visit if you were to use @key{u} again and again.
+
+@keycmd{@key{S}, elpher-show-visited-pages}
+This shows the entire Elpher browsing history. It includes all the
+pages you visited in your current Emacs session.
+
+@end table
+
+@node Bookmarks, Gopher character encodings, Navigation, Top
+@chapter Bookmarks
+
+Elpher makes use of standard Emacs bookmarks.
+@xref{Bookmarks, , , emacs, The Emacs Editor}.
+The following commands are used to add new bookmarks:
+
+@table @asis
+@keycmd{@key{a}, elpher-bookmark-link}
+Add a bookmark for the link at point.  The minibuffer will prompt for
+a name for the bookmark, which defaults to the display string.
+
+@keycmd{@key{A}, elpher-bookmark-current}
+Add a bookmark for the current page.  The minibuffer will prompt for
+a name for the bookmark, defaulting to the display string associated
+with the link that was followed to reach the current page.
+
+
+@keycmd{@key{B}, elpher-open-bookmarks}
+Visit a page displaying all elpher bookmarks. 
+The behaviour of the this function depends on the customization variable
+@code{elpher-use-emacs-bookmark-menu}.  If nil (the default), the
+command will visit a special elpher page listing all elpher-specific
+bookmarks.  If non-nil, the command will simply open the standard Emacs
+bookmark list displaying all current bookmarks (including non-elpher
+bookmarks).
+
+@keycmd{@kbd{C-x r l}, bookmark-bmenu-list}
+This command opens the standard Emacs bookmark menu, with which bookmarks
+can be renamed, deleted or annotated.
+
+@end table
+
+On opening the bookmarks page, elpher will offer to import any legacy
+(2.x) bookmarks files into the new system. Once the import is complete,
+the original bookmarks file will have ``-legacy'' appended to it, so
+so that elpher knows not to import it again.
+
+If you have any other legacy bookmark files (besides the one in the
+original location, or specified in the @code{elpher-bookmarks-file}
+customization variable, which should be automatically detected), you can
+can import these using
+
+@example
+@kbd{M-x elpher-bookmark-import @key{RET}}
+@end example
+
+Once this is done, you may delete these legacy bookmarks files.
+
+@node Gopher character encodings, Encrypted gopher connections, Bookmarks, Top
+@chapter Gopher character encodings
+
+Responses Elpher retrieves from servers are initially read as pure
+binary data.  When the data is intended to be interpreted as textual (as
+determined by the type parameter of the gopher menu item or the gopher
+URL), this data needs to be @emph{decoded} into a sequence of
+characters.  To do this properly requires knowledge of the encoding
+system used by whoever authored the document.
+
+Unfortunately gopher lacks a systematic way of acquiring this necessary
+information. Thus, the details of the coding system must be either
+inferred from the binary data, or must be specified by the user.
+
+By default, Elpher applies Emacs' built-in character encoding detection
+system to the full (undecoded) response data and uses this to attempt to
+convert it into a character string.
+(See @pxref{Recognize coding, Recognizing coding systems, ,emacs}.) While
+this approach can be okay, it is important to realize that its inference
+algorithm is extremely primitive and depends heavily on assumptions based
+on the language settings of your emacs system.
+
+The alternative is to explicitly set the coding system used for decoding
+using the following command:
+
+@table @asis
+@keycmd{@key{!},elpher-set-coding-system}
+Causes a elpher to prompt for a coding system to use for decoding
+future gopher text.  The @key{TAB} key can be used at this prompt to display a
+list of alternatives (which is extensive) and to auto-complete.  An empty
+response will cause Elpher to return to its default auto-detection
+behaviour.
+@end table
+
+Note that changing the coding system only affects newly loaded text.
+Thus, if text has already been decoded using an incorrect system, you
+will need to select the correct coding and then reload the text using
+@key{R}.
+
+
+@node Encrypted gopher connections, Gemini support, Gopher character encodings, Top
+@chapter Encrypted gopher connections
+
+While RFC 1436 does not broach the topic of encryption at all, several
+modern gopher servers can serve content over encrypted connections,
+and a common choice for this is TLS.
+
+Elpher can retrieve selectors using Emacs' built-in TLS support which
+uses the GnuTLS library. (It is possible to build emacs without
+GnuTLS, in which case encryption is not supported.)
+
+To retrieve documents using TLS, Elpher's TLS mode must be enabled.
+This can be directly toggled using @key{T}, but note that just as with
+the character encoding, changing this mode only affects subsequent
+connections.
+
+Alternatively, TLS mode is @emph{automatically} enabled whenever
+gopher URLs starting with @code{gophers://} are followed.
+
+The mode is sticky, so it remains active until switched off.
+It can also be automatically switched off when a TLS connection fails.
+In this case Elpher will prompt for your confirmation to ensure that
+you can't accidentally make a non-TLS connection.
+
+@node Gemini support, Finger support, Encrypted gopher connections, Top
+@chapter Gemini support
+
+@uref{gopher://gemini.circumlunar.space, Gemini}
+is a new protocol being developed by several members of
+gopherspace.  It aims to solve some of the long-standing technical
+issues associated with gopher as a protocol, while keeping the major benefits.
+For instance, it _requires_ encrypted connections, it does away with
+the selector type, and allows servers to explicitly specify the
+character coding scheme used for text documents.
+
+The latest versions of Elpher aim to provide seamless transitions between
+gemini and gopher documents.  Basically you should be able to open,
+bookmark, download and otherwise interact with gemini pages in exactly
+the same way as you do with other non-gemini pages.  The only major
+difference from your perspective as a user is that you should no longer
+have to worry about manually toggling TLS on or off (for gemini it's
+always on), and you should never have to manually set a character coding
+scheme.
+
+The gemini protocol specification recommends a Trust on First Use (TOFU)
+behaviour when validating gemini server TLS certificates.  This is
+because many gemini servers rely on self-signed certificates rather
+than certificates signed by a CA. Sadly however, this TOFU behaviour is
+far from straight-forward to configure using Emacs' existing Network
+Security Manager.  For this reason, elpher defaults to performing no
+certificate verification by default.  This behaviour can be easily
+customized by setting the @code{elpher-gemini-TLS-cert-checks}
+customization variable to non-nil.
+
+The gemini specification concerns both the protocol and a simple text
+document format (mimetype text/gemini) which is like a mixture between
+gophermap files and markdown-formatted files but simpler than both.
+Elpher renders gemini responses which are provided in this format in
+line with the rules in the spec.  This includes wrapping long lines at
+word boundaries.  The specific column at which this text is wrapped is
+defined by the customization variable
+@code{elpher-gemini-max-fill-width}, which is set to 80 columns by
+default. (This is slightly wider than Emacs' default fill width of 70
+columns due to the fact that there are a significant amount of older
+gemini content which, against the advice of the current spec, hard wraps
+at <80 columns.  The larger default allows this to still look okay,
+while still keeping content without hard wraps looking pleasant.)
+
+The text/gemini format also possesses a section header syntax similar to
+markdown.  Elpher allows different header levels to be drawn with
+different, customizable, faces.  By default, on graphically-capable
+emacs systems, these faces are given different heights to distinguish
+among levels.  On terminal systems, the level is indicated by the
+number of preceding # symbols.
+
+I should emphasize however that, while it is definitely functional,
+Elpher's gemini support is still experimental, and various aspects will
+change as the protocol develops further.
+
+@section Client Certificates for Gemini
+
+Gemini makes explicit use of the client certificate mechanism that TLS
+provides for allowing clients to authenticate themselves with servers.
+The Gemini specification suggests two distinct classes of client
+certificates: short-lived certificates used to identify you for a single
+session, and more permanent certificates used to identify you over a
+longer time period.
+
+When Elpher receives a request for a client certificate from a server,
+it will present you with the option to create and use a single-use
+``throwaway'' certificate, or to use a ``persistent''
+certificate (optionally creating it or installing pre-existing key and
+certificate files).
+
+Certificate creation in Elpher requires an installation of OpenSSL, and
+---in particular---that Elpher be able to run the @command{openssl} command-line
+utility.  By default, Elpher assumes that the @command{openssl} is on the
+system path, but the precise location can be set by customizing the
+@code{elpher-openssl-command} variable.
+
+Each generated certificate results in the creation of a .key file and
+a .crt file.  In the case of a throwaway certificate, these files are
+stored in the temporary directory indicated by the Emacs variable
+@code{temporary-file-directory} and are deleted when ``forgotten''
+(as described below).
+
+In the case of persistent certificates, these files are stored in the
+folder defined by the Elpher variable
+@code{elpher-certificate-directory}, and are never deleted by Elpher.
+(Of course you can delete them yourself whenever you like.)
+The base name of the files (i.e. sans extension) is what Elpher uses
+to identify the certificate.
+
+Using throwaway certificates is as simple as pressing the @key{t} 
+key at the prompt which appears following a certificate request from
+a server.  There is nothing more to do.
+
+Using a persistent certificate requires instead selecting @key{p} from the same
+menu.  This will result in Elpher asking you for the name identifying
+the certificate.  This entry autocompletes to the list of known certificate
+names, so you can use @key{TAB} to display the list.
+
+In the case that you choose a name that does not belong to the list of
+known certificates, Elpher will offer to create one for you or to
+``install'' one from existing key and certificate files.
+Pressing the @key{n} key will cause Elpher to begin the process of
+creating a new persistent certificate, using some additional
+details for which you will be prompted.
+Alternatively, pressing the @key{i} key will cause Elpher to ask for the
+locations of existing key and certificate files to add to
+@code{elpher-certificate-directory} under the chosen name.
+
+Once a certificate is selected, it will be used for all subsequent TLS
+transactions to the host for which the certificate was created.
+It is immediately ``forgotten'' when a TLS connection to another host
+is attempted, or the following command is issued:
+
+@table @asis
+@keycmd{@key{F},elpher-forget-certificate}
+Causes Elpher to immediately forget any currently-loaded client certificate.
+@end table
+
+In either case, ``forgetting'' means that the details of the key and
+certificate file pair are erased from memory.  Furthermore, in the case
+of throw-away certificates, the corresponding files are deleted.
+
+@section Hiding preformatted text in text/gemini documents
+
+Preformatted text is often used to display ``ASCII art'' or other
+similar text-based artwork.  While for many this is a fun way to
+introduce personality into their gemini documents, such text can
+pose difficulties for screen readers.
+
+Setting the @code{elpher-gemini-hide-preformatted} customization option
+to non-nil causes Elpher to hide all preformatted text blocks by
+default.  In place of the preformatted text, Elpher instead displays the
+``alt text'' (if any is available), along with a button which can be
+used to make specific blocks visible as required.
+
+Other related customization options are
+@code{elpher-gemini-preformatted-toggle-label}, which is the label used
+for the toggle button, and
+@code{elpher-gemini-preformatted-toggle-bullet}, which is the margin
+string used to distinguish the line replacing the preformatted text.
+
+@node Finger support, Local files, Gemini support, Top
+@chapter Finger support
+
+Incidentally, Elpher has native support for querying finger servers.
+Of course, one could argue that this functionality is more easily
+provided by one's local telnet client.  However finger URLs do appear
+on occasion in gopherspace, and it's nice to be able to open them
+in place.
+
+Elpher interprets @code{finger://} URLs as follows:
+
+@itemize
+
+@item
+The host is determined by the host name portion of the URL.
+
+@item
+In the case that the @emph{file name} portion of the URL is non-empty (besides
+the leading slash), this is interpreted as the user to finger.
+
+@item
+Otherwise, the @emph{user} portion of the URL is interpreted as the user to finger.
+
+@item
+If no user is provided, the root directory of the finger server is requested.
+
+@end itemize
+
+Thus @code{finger://user@@hostname} and @code{finger://hostname/user} are both equivalent.
+
+(The precedence of the /user notation over the user@ notation reflects a
+preference of the community.)
+
+@node Local files, About pages, Finger support, Top
+@chapter Local files
+
+Elpher supports opening local files via @samp{file:} URLs.
+
+For instance, pressing @key{g} and entering @code{file:~/document.gmi}
+will load the file named @samp{document.gmi} in your home directory,
+provided this file exists.
+
+Files opened in this way are rendered according to their name, and in
+particular their extension.  The current mappings are as follows:
+
+@table @asis
+
+@item @samp{txt}
+
+Plain text documents.  All local text files are assumed to be
+UTF-8-encoded.
+
+@item @samp{gophermap},@samp{gopher}
+
+Gophermap files, i.e. files containing a valid directory list as specified
+by RFC 1436.
+
+@item @samp{gemini},@samp{gmi}
+
+Gemini documents (i.e. documents of MIME type ``text/gemini'').  All
+local gemini files are assumed to be UTF-8-encoded.
+
+@item @samp{html},@samp{htm}
+
+HTML documents.  All local HTML files are assumed to be UTF-8-encoded.
+
+@item @samp{png},@samp{jpg},@samp{jpeg},@samp{gif},@samp{bmp},@samp{tif},@samp{tiff}
+
+Image files.
+
+@item Anything else
+A binary document, which elpher will simply offer to save somewhere
+else. (Obviously this is not useful in its own right, but there's not
+much that elpher can sensibly do with unknown binary files.)
+
+@end table
+
+
+@node About pages, ANSI support, Local files, Top
+@chapter About pages
+
+Like other browsers, elpher makes certain internally-generated pages
+such as the initial welcome page, the bookmarks page, the history
+stack and the list of visited pages pages accessible as URLs with
+the ``about:'' type.
+
+This means that these pages can be bookmarked and, more usefully,
+added to a local file to be rendered as a user-defined start page.
+
+To see the address of a special page, simply visit the page and
+press @key{I}.
+
+@node ANSI support, Customization, About pages, Top
+@chapter ANSI support
+
+Depending on which parts of the gopher/gemini universe you frequent,
+you may occasionally stumble on sites which use ANSI escape codes to
+either produce specific characters or to colour text.
+
+By default, elpher uses Emacs' built-in ANSI rendering library,
+@samp{ansi-color}, to process ANSI codes.  This robustly interprets
+the escape codes but only supports 8 colours.  Any colours unsupported
+by the library are simply stripped, leaving uncoloured text in the
+majority of cases.
+
+To drastically improve the number of colours produced, install the
+@samp{xterm-color} package from MELPA.  This package will be automatically
+used by elpher if it is available, and supports 256 colours.
+This should be sufficient to properly render many ANSI colour
+gopher holes and gemini capsules quite nicely.
+
+In case you prefer to completely strip out the ANSI escape codes entirely
+by customizing the @code{elpher-filter-ansi-from-text} variable.
+
+
+@node Customization, Command Index, ANSI support, Top
+@chapter Customization
+
+Various parts of Elpher can be customized via the 
+variables belonging to the elpher customization group, accessible
+using
+
+@example
+@kbd{M-x customize-group elpher @key{RET}}
+@end example
+
+@noindent This group contains a number of faces that can be modified to change
+the appearance of Elpher, including one face per menu item type.
+
+The group also contains variables for customizing the behaviour of
+Elpher.  This includes how to open arbitrary (non-gopher) URLs, whether
+to display buffer headers, how to deal with ANSI escape sequences in
+text, the timeout to impose on network connections, and whether to
+prompt for confirmation when switching away from TLS.
+
+One particularly important customization is the @code{elpher-start-page-url}
+variable, which holds the URL of the page displayed initially when
+elpher starts, and when @key{U} is pressed.  By default this is set to
+@samp{about:welcome}, but any URL can be substituted.  For example, you
+might want to create a text/gemini file named
+@samp{~/.emacs/start-page.gmi} containing useful links and set the value
+of @code{elpher-start-page-url} to @samp{file:~/.emacs/start-page.gmi} to have
+these links displayed at startup.  Alternatively, you might prefer
+to set the value to @samp{about:bookmarks} so that the bookmarks page
+is used as the start page instead.
+
+See the customization group itself for details.
+
+@node Command Index, News, Customization, Top
+@unnumbered Command Index
+
+@printindex fn
+
+@node News, Contributors, Command Index, Top
+@chapter News
+
+This chapter documents the major changes introduced by Elpher releases.
+
+@section v3.4.0
+
+@subsection Toggling preformatted text visibility
+
+This version introduces the ability to hide preformatted text in
+text/gemini documents by default.  To enable this, set the customization
+variable @code{elpher-gemini-hide-preformatted} to non-nil.  This causes
+all preformated text blocks to be replaced with their ``alt-text'' (if
+any is available) and a button for toggling the visibility of the text
+block.
+
+This feature is intended to make it easier for people using screen
+readers to read text/gemini documents.
+
+@section v3.3.0
+
+This version includes lots of bug fixes, as well as a couple of new
+features.
+
+@subsection Local gophermaps
+
+Local gophermaps can now be displayed using @samp{file:}. To render
+correctly, they must have the suffix @samp{.gopher} or @samp{.gophermap}.
+
+@subsection IRI support
+
+Internationalized Resource Identifiers (IRI) are an extension of URLs
+(or, more accurately, URIs) to support a larger set of characters beyond
+those in the US-ASCII character set.  They map directly onto URIs for
+backwards compatibility, but look like gibberish if not properly
+decoded.  When displaying URLs, Elpher now automatically decodes any IRI
+characters and displays the decoded IRI.  (For security reasons, the
+@code{elpher-info-current} command (@kbd{I}) always displays both the
+decoded IRI and the URI when they differ.)
+
+@section v3.2.0
+
+This version introduces several minor changes which, together, make it
+possible to set up alternative start pages configured to your liking.
+
+@subsection About pages
+
+Special elpher pages such as the welcome page (previously ``start''
+page), the bookmarks page, the browsing history stack and list of
+visited pages are now addressable via @samp{about:} URLs.  For instance,
+the standard welcome page has the address @samp{about:welcome}.
+
+@subsection Local files
+
+Local files can now be opened in elpher using @samp{file:} URLs. For
+example, @kbd{g @samp{file:~/my-start.gmi}} will open
+@samp{~/my-start.gmi} as a text/gemini document. @pxref{Local files}
+for details.
+
+@subsection Customizable start pages
+
+The new customization variable @code{elpher-start-page-url} contains the URL
+of the document to be loaded as elpher's ``start page''.  By default
+this is set to @samp{about:welcome}, but any elpher-accessible URL is
+valid. @pxref{Customization} for suggestions.
+
+@section v3.1.0
+
+@subsection Bookmarks system
+
+While Elpher bookmarks are still handled by the Emacs bookmark
+system, this release introduces the option to retain the
+original elpher bookmark page for the purpose of visiting those
+bookmarks.  In v3.1.0, @key{B} visits this page (and adds it to
+the history stack, as in previous versions), which can be interacted
+with using the standard elpher key bindings.
+
+Of course you can still view the bookmarks in the Emacs bookmark
+menu, which you can access from anywhere using the default
+binding @kbd{C-x r l} (or by following the link from the Elpher bookmarks
+page).  Indeed you will need to use this to rename, delete or otherwise
+edit your bookmarks.
+
+If you prefer to avoid using the Elpher bookmark page entirely, you
+use the customization variable @code{elpher-use-emacs-bookmark-menu}
+to have the @key{B} key open the Emacs bookmark menu directly, as in
+the previous release.
+
+@section v3.0.0
+
+@subsection Bookmarks system
+
+Bookmarks are now handled by Emacs' own bookmark management system,
+instead of Elpher's own system.
+(For details, @xref{Bookmarks, , , emacs, The Emacs Editor}.)
+This means two things.  Firstly,
+the bookmarks file (elpher-bookmarks by default) and format used by
+previous versions are now deprecated.  If these are detected, Elpher
+will offer to import your old bookmarks when you first accessing the
+bookmark list with the new version.  A suffix will be added to your
+old bookmarks file so that Elpher knows that the import is complete.
+
+Secondly, the old Elpher bookmark menu has been removed in the new
+version.  Instead, @key{B} brings up the menu provided by the Emacs
+function @code{bookmark-bmenu-list}. This has different key and mouse
+bindings to Elpher's old menu, but is much more functional.  Bookmarks
+can be renamed, deleted in groups, and much more.  (Use @kbd{C-h m} with
+the menu open to see the complete list.)
+
+@subsection History
+
+Browsing history can now be accessed via new bindings to @key{s} and @key{S}.
+The former shows the current history ``stack'' (pages accessible with
+the @key{u} key), while the latter shows a list of all pages which have
+been visited in the current session.
+
+@subsection Socks connections
+
+Elpher can now use socks connections to browse via TOR.
+
+@subsection browse-url, Org and mu4e integration
+
+These integrations provide support for elpher-handling of gemini, gopher
+and finger URLs using @code{browse-url}, in Org documents, and the mu4e
+mail system.
+
+@subsection imenu integration
+
+Gemini document headers are now navigable via imenu.
+For details, @xref{Imenu, , , emacs, The Emacs Editor}.
+
+@node Contributors,  , News, Top
+@chapter Contributors
+
+Elpher was originally written and is currently maintained by Tim Vaughan
+@email{plugd@@thelambdalab.xyz}.  Significant improvements and
+maintenance have also been contributed by and with the help of Alex
+Schroeder @email{alex@@gnu.org}.  In addition, the following people have
+all generously provided assistance and/or patches:
+
+@itemize
+@item Jens Östlund @email{jostlund@@gmail.com}
+@item F. Jason Park @email{jp@@neverwas.me}
+@item Christopher Brannon @email{chris@@the-brannons.com}
+@item Omar Polo @email{op@@omarpolo.com}
+@item Noodles! @email{nnoodle@@chiru.no}
+@item Abhiseck Paira @email{abhiseckpaira@@disroot.org}
+@item Zhiwei Chen @email{chenzhiwei03@@kuaishou.com}
+@item condy0919 @email{condy0919@@gmail.com}
+@item Alexis @email{flexibeast@@gmail.com}
+@item Étienne Deparis @email{etienne@@depar.is}
+@item Simon Nicolussi @email{sinic@@sinic.name}
+@item Michel Alexandre Salim @email{michel@@michel-slm.name}
+@item Koushk Roy @email{kroy@@twilio.com}
+@item Vee @email{vee@@vnsf.xyz}
+@item Simon South @email{simon@@simonsouth.net}
+@item Daniel Semyonov @email{daniel@@dsemy.com}
+@item Bradley Thornton @email{bradley@@northtech.us}
+@end itemize
+
+@bye
